@@ -1,3 +1,17 @@
+=item 0.02
+
+added Apache::ModuleDoc module
+
+added $mopd->commands method
+
+added Apache::Constants export tag :override
+
+added $cmd->req_override method
+
+added Apache::Constants export tag :args_how 
+
+added $cmd->args_how method
+
 =item 0.01 
 
 First release

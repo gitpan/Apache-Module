@@ -3,15 +3,45 @@ package Apache::Module;
 use strict;
 use vars qw($VERSION @ISA);
 
+use Apache::Constants ();
 use DynaLoader ();
 
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 if($ENV{MOD_PERL}) {
     bootstrap Apache::Module $VERSION;
 }
+
+my(@override)    = qw(
+		      OR_NONE
+		      OR_LIMIT
+		      OR_OPTIONS
+		      OR_FILEINFO
+		      OR_AUTHCFG
+		      OR_INDEXES
+		      OR_UNSET
+		      OR_ALL
+		      ACCESS_CONF
+		      RSRC_CONF);
+
+my(@args_how)    = qw(
+		      RAW_ARGS
+		      TAKE1
+		      TAKE2
+		      ITERATE
+		      ITERATE2
+		      FLAG
+		      NO_ARGS
+		      TAKE12
+		      TAKE3
+		      TAKE23
+		      TAKE123);
+
+$Apache::Constants::EXPORT_TAGS{args_how} = \@args_how;
+$Apache::Constants::EXPORT_TAGS{override} = \@override;
+push @Apache::Constants::EXPORT_OK, @args_how, @override;
 
 sub find {
     my($self,$name) = @_;
@@ -22,6 +52,15 @@ sub find {
     }
     
     return undef;
+}
+
+sub commands {
+    my $modp = shift;
+    my @retval = ();
+    for (my $cmd = $modp->cmds; $cmd; $cmd = $cmd->next) {
+	push @retval, $cmd->name;
+    }
+    \@retval;
 }
 
 sub content_handlers {
@@ -175,6 +214,6 @@ Doug MacEachern
 
 =head1 SEE ALSO
 
-Apache::Info(3), Apache(3), mod_perl(3).
+Apache::ModuleDoc(3), Apache::Info(3), Apache(3), mod_perl(3).
 
 =cut

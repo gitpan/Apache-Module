@@ -50,7 +50,7 @@
  *
  */
 
-/* $Id: Module.xs,v 1.1 1998/03/04 06:09:45 dougm Exp $ */
+/* $Id: Module.xs,v 1.2 1998/03/17 10:37:39 dougm Exp $ */
 #include "modules/perl/mod_perl.h"
 
 typedef module *Apache__Module;
@@ -202,6 +202,27 @@ next(hand)
 MODULE = Apache::Module		PACKAGE = Apache::Command
 
 Apache::Command
+find(cmd, name)
+    Apache::Command cmd
+    char *name
+
+    CODE:
+    while (cmd->name) {
+	if (strEQ(name, cmd->name)) {
+	    RETVAL = cmd;
+	    break;
+	}
+	else 
+	    ++cmd;
+    }
+
+    if(!(RETVAL = cmd)) 
+        XSRETURN_UNDEF;
+
+    OUTPUT:
+    RETVAL
+
+Apache::Command
 next(cmd)
     Apache::Command cmd
 
@@ -231,6 +252,72 @@ errmsg(cmd)
 
     CODE:
     RETVAL = cmd->errmsg;
+
+    OUTPUT:
+    RETVAL
+
+int
+req_override(cmd)
+    Apache::Command cmd
+
+    CODE:
+    RETVAL = cmd->req_override;
+
+    OUTPUT:
+    RETVAL
+
+SV *
+args_how(cmd)
+    Apache::Command cmd
+
+    CODE:
+    RETVAL = newSV(0);
+
+    sv_setnv(RETVAL, (double)cmd->args_how); 
+
+    switch(cmd->args_how) {
+    case RAW_ARGS:
+	sv_setpv(RETVAL, "RAW_ARGS");
+        break;
+    case TAKE1:
+	sv_setpv(RETVAL, "TAKE1");
+        break;
+    case TAKE2:
+	sv_setpv(RETVAL, "TAKE2");
+        break;
+    case ITERATE:
+	sv_setpv(RETVAL, "ITERATE");
+        break;
+    case ITERATE2:
+	sv_setpv(RETVAL, "ITERATE2");
+        break;
+    case FLAG:
+	sv_setpv(RETVAL, "FLAG");
+        break;
+    case NO_ARGS:
+	sv_setpv(RETVAL, "NO_ARGS");
+        break;
+    case TAKE12:
+	sv_setpv(RETVAL, "TAKE12");
+        break;
+    case TAKE3:
+	sv_setpv(RETVAL, "TAKE3");
+        break;
+    case TAKE23:
+	sv_setpv(RETVAL, "TAKE23");
+        break;
+    case TAKE123:
+	sv_setpv(RETVAL, "TAKE123");
+        break;
+    case TAKE13:
+	sv_setpv(RETVAL, "TAKE13");
+        break;
+    default:
+	sv_setpv(RETVAL, "__UNKNOWN__");
+        break;
+    };
+
+    SvNOK_on(RETVAL); /* ah, magic */ 
 
     OUTPUT:
     RETVAL

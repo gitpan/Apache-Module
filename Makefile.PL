@@ -9,7 +9,7 @@ handlers2xsubs("handlers.xsubs");
 
 WriteMakefile(
     'NAME'	=> 'Apache::Module',
-    'VERSION' => '0.01', 
+    'VERSION' => '0.02', 
     'INC'       => Apache::src->new->inc,	      
     'dist'    => {
 	COMPRESS=> 'gzip -9f', SUFFIX=>'gz',

@@ -10,4 +10,4 @@ Module.pm
 Module.xs
 typemap
 lib/Apache/Info.pm
-
+lib/Apache/ModuleDoc.pm

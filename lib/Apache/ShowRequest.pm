@@ -5,7 +5,7 @@ use vars qw($VERSION);
 use Apache::Module ();
 use Apache::Constants qw(:satisfy :common :args_how);
 
-$VERSION = '1.00';
+$VERSION = '1.02';
 sub TRUE  () {1}
 sub FALSE () {0}
 
@@ -13,10 +13,14 @@ sub handler {
     my $request = shift;
 
     my $uri = $request->path_info || "/";
+    my %args = $request->args;
+    my $headers_in = $request->headers_in;
+    while (my($k,$v) = each %args) {
+	$headers_in->set($k, $v);
+    }
+    $request->send_http_header("text/html");
 
     my $r = $request->lookup_uri($uri);
-
-    $request->send_http_header("text/html");
 
     my $status = OK;
 
@@ -68,22 +72,11 @@ EOF
 
 }
 
-sub print_item {
-    my $name = shift;
-    print "   $name ", '.' x (28 - length($name)), @_;
-}
-
-sub constant_name { 
-    my $status = shift;
-    my $bold = ($status != OK) && ($status != DECLINED);
-    print "<b>" if $bold;
-    print Apache::Constants->name($status);
-    print "</b>" if $bold;
-}
-
 sub run_method {
     my($r, $method, $run_all) = @_;
     my $top_module = Apache::Module->top_module;
+    my $say_defined = 0;
+    my $format = sub { shift };
 
     print "\nRequest phase: $method\n";
     for (my $modp = $top_module; $modp; $modp = $modp->next) {
@@ -93,16 +86,21 @@ sub run_method {
 
 	if(my $cv = $modp->$method()) {
 	    my $status = $r->$cv();
-	    constant_name($status);
+	    if ($say_defined) {
+		print $format->("defined");
+	    }
+	    else {
+		constant_name($status);
+	    }
 	    print "\n";
 
 	    if ($status != DECLINED && (!$run_all || $status != OK)) {
-		print "\n";
-		return $status;
+		$say_defined = 1;
+		$format = sub { "<i>@_</i>" };
 	    }
 	}
 	else {
-	    print "undef\n";
+	    print $format->("undef\n");
 	}
     } 
     print "\n";
@@ -148,6 +146,20 @@ sub invoke_handler {
 	}
     }
 }
+
+sub print_item {
+    my $name = shift;
+    print "   $name ", '.' x (28 - length($name)), @_;
+}
+
+sub constant_name { 
+    my $status = shift;
+    my $bold = ($status != OK) && ($status != DECLINED);
+    print "<b>" if $bold;
+    print Apache::Constants->name($status);
+    print "</b>" if $bold;
+}
+
 
 1;
 __END__

@@ -8,7 +8,7 @@ use DynaLoader ();
 
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 if($ENV{MOD_PERL}) {
     bootstrap Apache::Module $VERSION;

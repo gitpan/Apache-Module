@@ -8,12 +8,14 @@ use Apache::Util qw(escape_html);
 use Apache::Module ();
 use Apache::Constants qw(:common :override :args_how :server);
 
-$Apache::ModuleDoc::VERSION = '1.01';
+$Apache::ModuleDoc::VERSION = '1.02';
 my $ServerVersion;
 
 sub handler {
     my $r = shift;
     $ServerVersion ||= version();
+
+    return DECLINED if -r $r->finfo;
 
     my $module = basename $r->uri;
     return indexer($r) if $module eq "index";

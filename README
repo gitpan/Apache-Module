@@ -10,8 +10,8 @@ DESCRIPTION
 
 METHODS
     top_module
-        This method returns a pointer the first module in Apache's
-        internal list of modules.
+        This method returns a pointer the first module in Apache's internal
+        list of modules.
 
            Example:
 
@@ -24,8 +24,8 @@ METHODS
            }
 
     find($module_name)
-        This method returns a pointer to the module structure if
-        found, under otherwise.
+        This method returns a pointer to the module structure if found,
+        under otherwise.
 
           Example:
 
@@ -55,14 +55,12 @@ METHODS
             }
 
     Other Stuff
-        There's more you can do with this module, I will document it
-        later. For now, see Apache::ModuleDoc and
-        Apache::ShowRequest for examples.
+        There's more you can do with this module, I will document it later.
+        For now, see Apache::ModuleDoc and Apache::ShowRequest for examples.
 
 AUTHOR
     Doug MacEachern
 
 SEE ALSO
-    Apache::ModuleDoc(3), Apache::ShowRequest(3), Apache(3),
-    mod_perl(3).
+    Apache::ModuleDoc(3), Apache::ShowRequest(3), Apache(3), mod_perl(3).
 

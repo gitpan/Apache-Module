@@ -19,7 +19,19 @@ WriteMakefile(
 	COMPRESS=> 'gzip -9f', SUFFIX=>'gz',
         PREOP => 'pod2text Module.pm > README',
     },
+   'macro' => {
+	  CVSROOT => 'modperl.com:/local/cvs_repository',
+   },
 );
+
+sub MY::postamble { 
+    return <<'EOF'; 
+
+cvs_tag :
+	cvs -d $(CVSROOT) tag v$(VERSION_SYM) . 
+	@echo update Module.pm VERSION now 
+EOF
+}
 
 my %not_imp;
 BEGIN {

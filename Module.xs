@@ -50,12 +50,8 @@
  *
  */
 
-/* $Id: Module.xs,v 1.2 1998/03/17 10:37:39 dougm Exp $ */
+/* $Id: Module.xs,v 1.2 1998/10/23 00:13:57 dougm Exp $ */
 #include "modules/perl/mod_perl.h"
-
-typedef module *Apache__Module;
-typedef handler_rec *Apache__Handler;
-typedef command_rec *Apache__Command;
 
 typedef int (*handler_func) (request_rec *);
 extern module *top_module;
@@ -63,17 +59,10 @@ extern module *top_module;
 XS(XS_Apache__Module_handler_dispatch)
 {
     dXSARGS;
-    request_rec *r;
+    request_rec *r = sv2request_rec(ST(0), "Apache", cv);
     int result;
     handler_func handler = (handler_func) CvXSUBANY(cv).any_ptr;
 
-    if (SvROK(ST(0)) && sv_derived_from(ST(0), "Apache")) {
-	IV tmp = SvIV((SV*)SvRV(ST(0)));
-	r = (Apache) tmp;
-    }
-    else 
-	croak("r is not of type Apache!");
-   
     result = (*handler)(r);
 
     ST(0) = sv_2mortal(newSViv(result));
@@ -110,9 +99,10 @@ static SV *handler2cv(handler_func fp)
 #define member_member(thing) \
     if(!(RETVAL = (thing))) XSRETURN_UNDEF
 
-MODULE = Apache::Module		PACKAGE = Apache::Module	PREFIX=ap_mod_
+MODULE = Apache::Module		PACKAGE = Apache::Module	PREFIX=ap_
 
 INCLUDE: handlers.xsubs
+
 
 Apache::Module
 top_module(class)
@@ -123,6 +113,20 @@ top_module(class)
 
     OUTPUT:
     RETVAL
+
+void
+add(modp)
+    Apache::Module modp
+
+    CODE:
+    ap_add_module(modp);
+
+void
+remove(modp)
+    Apache::Module modp
+
+    CODE:
+    ap_remove_module(modp);
 
 Apache::Module
 next(modp)
@@ -150,7 +154,7 @@ handlers(modp)
 
     CODE:
     if(modp->handlers)
-        RETVAL = modp->handlers;
+        RETVAL = (Apache__Handler)modp->handlers;
     else
         XSRETURN_UNDEF;
 
@@ -163,7 +167,7 @@ cmds(modp)
 
     CODE:
     if(modp->cmds)
-        RETVAL = modp->cmds;
+        RETVAL = (Apache__Command)modp->cmds;
     else
         XSRETURN_UNDEF;
 
@@ -172,7 +176,7 @@ cmds(modp)
 
 MODULE = Apache::Module		PACKAGE = Apache::Handler
 
-char *
+const char *
 content_type(hand)
     Apache::Handler hand
 
@@ -181,6 +185,16 @@ content_type(hand)
         RETVAL = hand->content_type;
     else
         XSRETURN_UNDEF;
+
+    OUTPUT:
+    RETVAL
+
+SV *
+handler(hand)
+    Apache::Handler hand
+
+    CODE:
+    handler2cvrv(hand->handler);
 
     OUTPUT:
     RETVAL
@@ -236,7 +250,7 @@ next(cmd)
     OUTPUT:
     RETVAL
 
-char *
+const char *
 name(cmd)
     Apache::Command cmd
 
@@ -246,7 +260,7 @@ name(cmd)
     OUTPUT:
     RETVAL
 
-char *
+const char *
 errmsg(cmd)
     Apache::Command cmd
 
@@ -261,7 +275,7 @@ req_override(cmd)
     Apache::Command cmd
 
     CODE:
-    RETVAL = cmd->req_override;
+    RETVAL = cmd->req_override; 
 
     OUTPUT:
     RETVAL
@@ -318,104 +332,6 @@ args_how(cmd)
     };
 
     SvNOK_on(RETVAL); /* ah, magic */ 
-
-    OUTPUT:
-    RETVAL
-
-MODULE = Apache::Module		PACKAGE = Apache
-
-int
-location_walk(r)
-    Apache r
-
-int
-file_walk(r)
-    Apache r
-
-int
-directory_walk(r)
-    Apache r
-
-
-Apache
-new_from_uri(r, new_file)
-    Apache r
-    char *new_file
-
-    PREINIT:
-    request_rec *rnew;
-    int res;
-    char *udir;
-
-    CODE:
-    rnew = (request_rec *)make_sub_request(r);
-    rnew->request_time   = r->request_time;
-    rnew->connection     = r->connection;
-    rnew->server         = r->server;
-    rnew->request_config = (void*)create_request_config(rnew->pool);
-    rnew->htaccess       = r->htaccess;
-    rnew->per_dir_config = r->server->lookup_defaults;
-    rnew->connection->user = "";
-
-    set_sub_req_protocol(rnew, r);
-
-    if (new_file[0] == '/')
-        parse_uri(rnew, new_file);
-    else {
-        udir = make_dirstr_parent(rnew->pool, r->uri);
-        udir = escape_uri(rnew->pool, udir);    /* re-escape it */
-        parse_uri(rnew, make_full_path(rnew->pool, udir, new_file));
-    }
-
-    res = unescape_url(rnew->uri);
-    if(res) 
-        rnew->status = res;
-    else 
-        getparents(rnew->uri);
-
-    RETVAL = rnew;
-
-    OUTPUT:
-    RETVAL
-
-MODULE = Apache::Module		PACKAGE = Apache::Server
-
-int
-timeout(server)
-    Apache::Server	server
-
-    CODE:
-    RETVAL = server->timeout;
-
-    OUTPUT:
-    RETVAL
-
-int
-keep_alive_timeout(server)
-    Apache::Server	server
-
-    CODE:
-    RETVAL = server->keep_alive_timeout;
-
-    OUTPUT:
-    RETVAL
-
-int
-keep_alive_max(server)
-    Apache::Server	server
-
-    CODE:
-    RETVAL = server->keep_alive_timeout;
-
-    OUTPUT:
-    RETVAL
-
-int
-keep_alive(server)
-    Apache::Server	server
-
-    CODE:
-    RETVAL = server->keep_alive;
 
     OUTPUT:
     RETVAL

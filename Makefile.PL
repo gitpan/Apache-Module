@@ -1,20 +1,23 @@
 use ExtUtils::MakeMaker;
 
 use strict;
+use mod_perl 1.16;
 use 5.004_04;
 use IO::File ();
 use Apache::src ();
 
 handlers2xsubs("handlers.xsubs");
 
+my $src = Apache::src->new;
+
 WriteMakefile(
     'NAME'	=> 'Apache::Module',
-    'VERSION' => '0.02', 
-    'INC'       => Apache::src->new->inc,	      
+    'VERSION_FROM' => 'Module.pm', 
+    'INC'       => $src->inc,	      
+    'DEFINE' => $src->define,
     'dist'    => {
 	COMPRESS=> 'gzip -9f', SUFFIX=>'gz',
-	CI => qq(ci -u -m\\"See Changes file\\"),
-        PREOP => 'co -l README && pod2text Module.pm > README && ci -u README',
+        PREOP => 'pod2text Module.pm > README',
     },
 );
 
@@ -61,3 +64,70 @@ $handler(modp)
 EOF
      }
 }
+
+package Apache::Module;
+
+
+my %request_method_desc = (
+ translate_handler => "URI Translate",
+ post_read_request => "Post Read Request",
+ header_parser => "Header Parser",
+ check_user_id => "Authentication",
+ auth_checker => "Authorization",
+ access_checker => "Access Check",
+ type_checker => "Type Checker",
+ fixer_upper => "Fixups",
+ logger => "Logging",
+);
+
+my %config_method_desc = (
+ child_init => "Child Init",
+ child_exit => "Child Exit",
+ init => "Module Init",
+ create_dir_config => "Create Directory Config",
+ merge_dir_config => "Merge Directory Configs",
+ create_server_config => "Create Server Config",
+ merge_server_config => "Merge Server Configs",
+);
+
+sub request_methods { 
+    my @request_methods = qw{
+ post_read_request
+ translate_handler
+ header_parser
+ access_checker
+ check_user_id
+ auth_checker
+ type_checker
+ fixer_upper
+ logger
+ };
+    @request_methods;
+}
+
+sub config_methods { 
+    my @config_methods = qw{
+ init
+ child_init
+ create_dir_config
+ merge_dir_config
+ create_server_config
+ merge_server_config
+ child_exit
+ };
+    @config_methods;
+}
+
+sub methods { request_methods(), config_methods() }
+
+sub method_desc {
+    my($self, $method) = @_;
+    $request_method_desc{$method} || $config_method_desc{$method};
+}
+
+
+
+
+
+
+

@@ -1,13 +1,9 @@
 README
 Changes
-Globals/Globals.pm
-Globals/Globals.xs
-Globals/Makefile.PL
-Globals/typemap
 MANIFEST
 Makefile.PL
 Module.pm
 Module.xs
 typemap
-lib/Apache/Info.pm
 lib/Apache/ModuleDoc.pm
+lib/Apache/ShowRequest.pm
